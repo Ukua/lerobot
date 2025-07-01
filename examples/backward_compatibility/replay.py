@@ -43,6 +43,7 @@ from lerobot.common.robots import (  # noqa: F401
     make_robot_from_config,
     so100_follower,
     so101_follower,
+    bxi_arm
 )
 from lerobot.common.utils.robot_utils import busy_wait
 from lerobot.common.utils.utils import (

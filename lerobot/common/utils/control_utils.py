@@ -33,6 +33,8 @@ from lerobot.common.datasets.utils import DEFAULT_FEATURES
 from lerobot.common.policies.pretrained import PreTrainedPolicy
 from lerobot.common.robots import Robot
 
+import time
+
 
 def log_control_info(robot: Robot, dt_s, episode_index=None, frame_index=None, fps=None):
     log_items = []
@@ -156,10 +158,12 @@ def init_keyboard_listener():
 
     def on_press(key):
         try:
-            if key == keyboard.Key.right:
+            # if key == keyboard.Key.right:
+            if key == keyboard.Key.page_down:
                 print("Right arrow key pressed. Exiting loop...")
                 events["exit_early"] = True
-            elif key == keyboard.Key.left:
+            # elif key == keyboard.Key.left:
+            if key == keyboard.Key.end:
                 print("Left arrow key pressed. Exiting loop and rerecord the last episode...")
                 events["rerecord_episode"] = True
                 events["exit_early"] = True
@@ -167,6 +171,7 @@ def init_keyboard_listener():
                 print("Escape key pressed. Stopping data recording...")
                 events["stop_recording"] = True
                 events["exit_early"] = True
+            # time.sleep(1) # Small delay to avoid multiple triggers
         except Exception as e:
             print(f"Error handling key press: {e}")
 
