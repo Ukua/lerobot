@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keyboard
 import logging
 import os
 import sys
-import time
 from queue import Queue
 from typing import Any
 
@@ -27,7 +27,8 @@ from lerobot.common.errors import DeviceAlreadyConnectedError, DeviceNotConnecte
 from ..teleoperator import Teleoperator
 from .configuration_keyboard import KeyboardEndEffectorTeleopConfig, KeyboardTeleopConfig
 
-import keyboard
+import threading
+import time
 
 # PYNPUT_AVAILABLE = True
 # try:
@@ -43,7 +44,6 @@ import keyboard
 #     keyboard = None
 #     PYNPUT_AVAILABLE = False
 #     logging.info(f"Could not import pynput: {e}")
-
 
 class KeyboardTeleop(Teleoperator):
     """
@@ -173,13 +173,25 @@ class KeyboardEndEffectorTeleop(KeyboardTeleop):
         else:
             logging.warning("No gamepad connected.")
 
+        self.pos = [0.2,0.2,0.3,0]
+        
+        # 添加守护线程来监控 num 0 键
+        self.reset_thread_active = True
+        self.reset_thread = threading.Thread(target=self._monitor_reset_key, daemon=True)
+        self.reset_thread.start()
+
     @property
     def action_features(self) -> dict:
         if self.config.use_gripper:
+            # return {
+            #     "dtype": "float32",
+            #     "shape": (4,),
+            #     "names": {"delta_x.pos": 0, "delta_y.pos": 1, "delta_z.pos": 2, "gripper.pos": 3},
+            # }
             return {
                 "dtype": "float32",
                 "shape": (4,),
-                "names": {"delta_x.pos": 0, "delta_y.pos": 1, "delta_z.pos": 2, "gripper.pos": 3},
+                "names": {"x.pos": 0, "y.pos": 1, "z.pos": 2, "g.pos": 3},
             }
         else:
             return {
@@ -199,6 +211,11 @@ class KeyboardEndEffectorTeleop(KeyboardTeleop):
         self.event_queue.put((key, False))
 
     def disconnect(self) -> None:
+        # 停止守护线程
+        self.reset_thread_active = False
+        if hasattr(self, 'reset_thread') and self.reset_thread.is_alive():
+            self.reset_thread.join(timeout=1.0)
+        
         super().disconnect()
         if self.joystick:
             self.joystick.quit()
@@ -209,8 +226,8 @@ class KeyboardEndEffectorTeleop(KeyboardTeleop):
             raise DeviceNotConnectedError(
                 "KeyboardTeleop is not connected. You need to run `connect()` before `get_action()`."
             )
-
-        self._drain_pressed_keys()
+        
+        # self._drain_pressed_keys()
         delta_x = 0.0
         delta_y = 0.0
         delta_z = 0.0
@@ -268,7 +285,7 @@ class KeyboardEndEffectorTeleop(KeyboardTeleop):
         elif keyboard.is_pressed("num 3"):
             gripper_action = -1
 
-
+        # 注意：num 0 的重置功能现在由守护线程处理
         # Generate action based on current key states
         # for key, val in self.current_pressed.items():
         #     if key == keyboard.Key.up:
@@ -294,17 +311,45 @@ class KeyboardEndEffectorTeleop(KeyboardTeleop):
         #         # this is useful for retrieving other events like interventions for RL, episode success, etc.
         #         self.misc_keys_queue.put(key)
 
-        self.current_pressed.clear()
+        # self.current_pressed.clear()
 
+        # action_dict = {
+        #     "delta_x.pos": delta_x,
+        #     "delta_y.pos": delta_y,
+        #     "delta_z.pos": delta_z,
+        #     "gripper.pos": gripper_action,
+        # }
+
+        self.pos[0] += delta_x*0.01
+        self.pos[1] += delta_y*0.01
+        self.pos[2] += delta_z*0.01
+        self.pos[3] += gripper_action*0.001
+        self.pos[0] = self.pos[0]
+        self.pos[1] = self.pos[1]
+        self.pos[2] = self.pos[2]
+        self.pos[3] = max(0, min(self.pos[3], 0.05))  # Clamp gripper position between 0 and 0.05
         action_dict = {
-            "delta_x.pos": delta_x,
-            "delta_y.pos": delta_y,
-            "delta_z.pos": delta_z,
-            "gripper.pos": gripper_action,
+            "x.pos": self.pos[0],
+            "y.pos": self.pos[1],
+            "z.pos": self.pos[2],
+            "g.pos": self.pos[3]*10.0,
         }
-
-        if self.config.use_gripper:
-            action_dict["gripper.pos"] = gripper_action
+        # if self.config.use_gripper:
+        #     action_dict["gripper.pos"] = gripper_action
 
         # print(f"Current action: {action_dict}")
         return action_dict
+
+    def _monitor_reset_key(self):
+        """守护线程：监控 num 0 键来重置位置"""
+        while self.reset_thread_active:
+            try:
+                if keyboard.is_pressed("num 0"):
+                    self.pos = [0.2, 0.2, 0.3, 0]
+                    logging.info("位置已重置到初始值: [0.2, 0.2, 0.3, 0]")
+                    # 等待一下避免重复触发
+                    time.sleep(0.2)
+                time.sleep(0.01)  # 100Hz 轮询频率
+            except Exception as e:
+                logging.warning(f"重置键监控线程出错: {e}")
+                time.sleep(0.1)

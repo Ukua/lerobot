@@ -26,12 +26,12 @@
     <mesh name="gripper_r" file="gripper_r.STL"/>
   </asset>  <worldbody>
     <!-- Overhead camera mounted above the scene -->
-    <camera name="overhead_camera" pos="0 0 1.0" xyaxes="1 0 0 0 -1 0"/>
+    <camera name="overhead_camera" pos="0 0 1.5" xyaxes="1 0 0 0 1 0"/>
     <light name="overhead_light" pos="0 0 1.5" castshadow="false"/>
     <geom type="mesh" rgba="1 1 1 1" mesh="base_link"/>
     <body name="link1">
       <inertial pos="-1.01502e-06 -0.00315105 0.0431262" quat="0.704635 0.0582641 -0.038985 0.706098" mass="0.363576" diaginertia="9.56788e-05 7.78423e-05 7.69165e-05"/>
-      <joint name="joint_link1" pos="0 0 0" axis="0 0 -1" range="-3.1415926 3.1415926"/>
+      <joint name="joint_link1" pos="0 0 0" axis="0 0 -1" range="-6.2831852 6.2831852"/>
       <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="link1"/>
       <body name="link2" pos="0 0 0.048" quat="0.707105 0.707108 0 0">
         <inertial pos="4.84416e-05 0.060778 1.93033e-05" quat="0.709402 -0.00153027 0.00354105 0.704794" mass="0.345274" diaginertia="8.8169e-05 8.23659e-05 7.40042e-05"/>
@@ -39,7 +39,7 @@
         <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="link2"/>
         <body name="link3" pos="0 0.094 0" quat="0.707105 -0.707108 0 0">
           <inertial pos="0.00231671 1.99517e-05 0.123131" quat="0.999896 0.000413564 0.0144106 0.000241483" mass="0.420046" diaginertia="0.000125858 0.00011213 8.58521e-05"/>
-          <joint name="joint_link3" pos="0 0 0" axis="0 0 -1" range="-3.1415926 3.1415926"/>
+          <joint name="joint_link3" pos="0 0 0" axis="0 0 -1" range="-6.2831852 6.2831852"/>
           <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="link3"/>
           <body name="link4" pos="0 0 0.146" quat="0.707107 0 0.707107 0">
             <inertial pos="-0.0787171 0.000283571 -0.000118132" quat="0.487732 0.504794 0.51249 0.494626" mass="0.530694" diaginertia="0.000349053 0.000264016 0.000200715"/>
@@ -47,7 +47,7 @@
             <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="link4"/>
             <body name="link5" pos="-0.1275 0 0" quat="0.707107 0 -0.707107 0">
               <inertial pos="-0.000555169 -1.36007e-08 0.0129923" quat="0.482896 0.516538 0.516538 0.482896" mass="0.1001848" diaginertia="4.66972e-05 3.42929e-05 2.25957e-05"/>
-              <joint name="joint_link5" pos="0 0 0" axis="0 0 -1" range="-3.1415926 3.1415926"/>
+              <joint name="joint_link5" pos="0 0 0" axis="0 0 -1" range="-6.2831852 6.2831852"/>
               <geom type="mesh" rgba="0.752941 0.752941 0.752941 1" mesh="link5"/>
               <body name="link6" pos="0 0 0.0415" quat="0.707107 0 0.707107 0">
                 <inertial pos="-0.0296928 0.00138012 0.000664094" quat="0.474571 0.554121 0.374767 0.572086" mass="0.617362" diaginertia="0.000188386 0.000187871 0.000129882"/>
