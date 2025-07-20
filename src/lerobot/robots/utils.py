@@ -65,6 +65,10 @@ def make_robot_from_config(config: RobotConfig) -> Robot:
         from tests.mocks.mock_robot import MockRobot
 
         return MockRobot(config)
+    elif config.type == "bxi_arm":
+        from .bxi_arm.config_bxi_arm import BxiArmConfig
+
+        return BxiArmConfig(config)
     else:
         raise ValueError(config.type)
 
