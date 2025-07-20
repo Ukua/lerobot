@@ -175,7 +175,7 @@ class RebocapTeleop(Teleoperator):
         self.event_queue = Queue()
         self.current_pressed = {}
         self.gripper = 0.0  # 初始夹爪位置
-
+        self.qpos7 = 0.0  # 初始夹爪位置
     @property
     def action_features(self) -> dict:
         """返回动作特征定义，支持7自由度机械臂关节角度，最后一个为夹爪"""
@@ -384,13 +384,14 @@ class RebocapTeleop(Teleoperator):
 
             for key, val in self.current_pressed.items():
                 if key == keyboard.Key.up:
-                    gripper -= 1
+                    self.gripper += 1
                 elif key == keyboard.Key.down:
-                    gripper += 1
+                    self.gripper -= 1
             # 低通滤波
-            self.gripper = 0.9 * self.gripper + 0.1 * gripper  # 使用当前qpos[7]作为输入
+            self.qpos7 = 0.9 * self.qpos7 + 0.1 * self.gripper  # 使用当前qpos[7]作为输入
             # 限制夹爪位置在0到1之间
             self.gripper = max(0.0, min(5.0, self.gripper))
+            self.qpos7 = max(0.0, min(5.0, self.qpos7))  # 限制夹爪位置在0到1之间
             self.current_pressed.clear()
 
             action_dict = {
@@ -401,7 +402,7 @@ class RebocapTeleop(Teleoperator):
                 "qpos4": float(qpos[4]),
                 "qpos5": float(qpos[5]),
                 "qpos6": float(qpos[6]),
-                "qpos7": self.gripper,
+                "qpos7": self.qpos7,
             }
 
             self.logs["read_pos_dt_s"] = time.perf_counter() - before_read_t
